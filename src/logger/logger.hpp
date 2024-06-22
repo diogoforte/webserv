@@ -7,10 +7,10 @@
  * @brief Enum for log levels.
  */
 enum log_level {
-    debug,   ///< Debug log level
-    info,    ///< Informational log level
-    warning, ///< Warning log level
-    error,   ///< Error log level
+  debug,   ///< Debug log level
+  info,    ///< Informational log level
+  warning, ///< Warning log level
+  error,   ///< Error log level
 };
 
 #pragma endregion
@@ -54,7 +54,8 @@ enum log_level {
 #define HTTP_404 "[404] Not Found  |   URI:"
 #define HTTP_405 "[405] Method Not Allowed  |   URI:"
 #define HTTP_413 "[413] Content Too Large  |   URI:"
-#define HTTP_501 "[501] Not Implemented  |   URI:"
 #define HTTP_500 "[500] Internal Server Error  |   URI:"
+#define HTTP_501 "[501] Not Implemented  |   URI:"
+#define HTTP_502 "[502] Bad Gateway  |   URI:"
 
 #endif

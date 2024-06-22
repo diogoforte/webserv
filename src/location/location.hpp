@@ -7,37 +7,37 @@
 class Config;
 
 class Location {
-  public:
+public:
 #pragma region Constructors &Destructors
 
-    Location();
+  Location();
 
-    ~Location();
+  ~Location();
 
 #pragma endregion
 
 #pragma region Getters
 
-    const std::string &get_path();
+  const std::string &get_path();
 
-    Config &get_config();
+  Config &get_config();
 
-    std::vector<std::string> &get_allowed_methods();
+  std::vector<std::string> &get_allowed_methods();
 
 #pragma endregion
 
 #pragma region Setters
 
-    void set_path(const std::string &path);
+  void set_path(const std::string &path);
 
-    void add_allowed_methods(const std::string &method);
+  void add_allowed_methods(const std::string &method);
 
 #pragma endregion
 
-  private:
-    std::string path_;
-    Config config_;
-    std::vector<std::string> allowed_methods_;
+private:
+  std::string path_;
+  Config config_;
+  std::vector<std::string> allowed_methods_;
 };
 
 #endif

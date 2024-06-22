@@ -14,32 +14,32 @@
  * @param log_level The log level of the message (INFO, WARNING, ERROR).
  */
 void WebServer::log(const std::string &message, const int log_level) {
-    std::string log_message;
-    std::string color_message;
-    switch (log_level) {
-    case debug:
-        log_message = "[DEBUG]\t\t" + message;
-        color_message = PURPLE + log_message + RESET;
-        break;
-    case info:
-        log_message = "[INFO]\t\t" + message;
-        color_message = BLUE + log_message + RESET;
-        break;
-    case warning:
-        log_message = "[WARNING]\t" + message;
-        color_message = YELLOW + log_message + RESET;
-        break;
-    case error:
-        log_message = "[ERROR]\t\t" + message;
-        color_message = RED + log_message + RESET;
-        break;
-    default:
-        log_message = "[ERROR]\tInvalid log level passed";
-        color_message = RED + log_message + RESET;
-        break;
-    }
-    std::cout << color_message << std::endl;
-    log_file_ << log_message << std::endl;
-    if (log_level == error)
-        throw std::runtime_error(log_message);
+  std::string log_message;
+  std::string color_message;
+  switch (log_level) {
+  case debug:
+    log_message = "[DEBUG]\t\t" + message;
+    color_message = PURPLE + log_message + RESET;
+    break;
+  case info:
+    log_message = "[INFO]\t\t" + message;
+    color_message = BLUE + log_message + RESET;
+    break;
+  case warning:
+    log_message = "[WARNING]\t" + message;
+    color_message = YELLOW + log_message + RESET;
+    break;
+  case error:
+    log_message = "[ERROR]\t\t" + message;
+    color_message = RED + log_message + RESET;
+    break;
+  default:
+    log_message = "[ERROR]\tInvalid log level passed";
+    color_message = RED + log_message + RESET;
+    break;
+  }
+  std::cout << color_message << std::endl;
+  log_file_ << log_message << std::endl;
+  if (log_level == error)
+    throw std::runtime_error(log_message);
 }

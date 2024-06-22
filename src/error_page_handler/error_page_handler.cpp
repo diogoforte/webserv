@@ -53,6 +53,12 @@ std::string ErrorPageHandler::get_error_page(const int status_code) {
       return Utils::response_builder("501", "Not Implemented", "text/html",
                                      content.length()) +
              content;
+    case 502:
+      content = Utils::read_file(get_error_page_path(502));
+      WebServer::log(std::string(HTTP_502) + headers_.at("uri"), warning);
+      return Utils::response_builder("502", "Bad Gateway", "text/html",
+                                     content.length()) +
+             content;
     default:
       content = Utils::read_file(get_error_page_path(500));
       WebServer::log(std::string(HTTP_500) + headers_.at("uri"), warning);
@@ -104,9 +110,13 @@ std::string ErrorPageHandler::get_error_page_path(const int status_code) {
     return (!hasCustomErrorPage || !isValidPath)
                ? "default_pages/not_implemented.html"
                : path;
+  case 502:
+    return (!hasCustomErrorPage || !isValidPath)
+               ? "default_pages/bad_gateway.html"
+               : path;
   default:
     return (!hasCustomErrorPage || !isValidPath)
-               ? "default_pages/internal_server_error.html"
+               ? "default_pages/server_error.html"
                : path;
   }
 }

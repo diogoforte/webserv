@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <stdlib.h>
+#include <unistd.h>
 
 Utils::Utils(void) {}
 Utils::~Utils() {}
@@ -194,6 +195,27 @@ const std::string Utils::create_autoindex(const std::string &path,
   }
   autoindex += "</table>\n</body>\n</html>";
   return autoindex;
+}
+
+/// @brief Try to find the path of a cgi program
+/// @param command The command to find
+/// @return The path of the cgi program
+std::string Utils::path_finder(const std::string &command) {
+  std::string path;
+  std::string env_path = std::getenv("PATH");
+  if (env_path.empty())
+    return "";
+  std::vector<std::string> paths;
+  std::stringstream ss(env_path);
+  std::string item;
+  while (std::getline(ss, item, ':'))
+    paths.push_back(item);
+  for (size_t i = 0; i < paths.size(); i++) {
+    path = paths.at(i) + "/" + command;
+    if (access(path.c_str(), X_OK) == 0)
+      return path;
+  }
+  return "";
 }
 #pragma endregion
 

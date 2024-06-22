@@ -25,6 +25,7 @@ public:
   static bool should_generate_autoindex(const std::string &uri, Server &server);
   static const std::string create_autoindex(const std::string &path,
                                             const std::string &uri);
+  static std::string path_finder(const std::string &command);
 };
 
 #endif
