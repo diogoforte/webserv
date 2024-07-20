@@ -189,8 +189,33 @@ void WebServer::handle_connection(Server &server, Client &client) {
     return;
   }
   const std::string data_received(buffer);
-  HttpHandler http_handler(data_received, server, client);
+  HttpHandler http_handler(data_received, server);
   client.set_response(http_handler.process_request());
+}
+
+/**
+ * Handles client connection
+ * @param server
+ * @param client
+ */
+void WebServer::handeConnection(Server& server, Client& client)
+{
+    char buffer[BUFFER_SIZE];
+    size_t const bytesReceived = recv(client.get_socket(), buffer, BUFFER_SIZE, 0);
+
+    bool isMessageValid = bytesReceived > 0;
+
+    if (isMessageValid)
+    {
+        std::string const dataString(buffer);
+        HttpHandler httpHandler(dataString, server);
+    }
+    else
+    {
+
+        log(!bytesReceived ? "Client disconnected" :
+            "Failed to receive data from client", warning);
+    }
 }
 
 /// @brief Close the connection with the client

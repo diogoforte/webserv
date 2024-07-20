@@ -16,8 +16,6 @@ class Location;
 
 class Config {
 public:
-#pragma region File Parser
-
   static void parse_config_file(const std::string &path,
                                 std::vector<Server> &servers);
 
@@ -32,19 +30,12 @@ public:
   static void limit_except(const std::string &line, Location &location);
 
   static void check_semicolon(const std::string &line);
-#pragma endregion
-
-#pragma region Constructors &Destructors
 
   Config();
 
   ~Config();
 
   Config(const Config &other);
-
-#pragma endregion
-
-#pragma region Getters
 
   const std::string &get_root();
 
@@ -58,10 +49,6 @@ public:
 
   const std::string &get_redirection();
 
-#pragma endregion
-
-#pragma region Setters
-
   void set_root(const std::string &root);
 
   void add_index(const std::string &index);
@@ -73,8 +60,6 @@ public:
   void set_auto_index(const bool &autoindex);
 
   void set_redirection(const std::string &redirection);
-
-#pragma endregion
 
 private:
   std::string root_;

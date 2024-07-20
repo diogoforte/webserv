@@ -45,6 +45,7 @@ public:
   void accept_connection(Server &server) const;
 
   void handle_connection(Server &server, Client &client);
+  void handeConnection(Server& server, Client& client);
 
   void end_connection(Server &server, Client &client);
 

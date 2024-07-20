@@ -14,7 +14,7 @@ enum redirectionType { REDIRECT_307, REDIRECT_308 };
 
 class HttpHandler {
 public:
-  HttpHandler(const string &request, Server &server, Client &client);
+  HttpHandler(const string &request, Server &server);
 
   ~HttpHandler();
 
@@ -24,7 +24,6 @@ private:
   Server *server_;
   std::map<string, string> headers_;
   ErrorPageHandler error_page_handler_;
-  Client *client_;
 
   string process_get();
 

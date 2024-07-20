@@ -6,13 +6,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-HttpHandler::HttpHandler(const string &request, Server &server,
-                         Client &client)
-    : server_(&server), client_(&client) {
+HttpHandler::HttpHandler(const string &request, Server &server)
+    : server_(&server)
+{
   HttpParser parser(request);
   headers_ = parser.get_headers();
   error_page_handler_ = ErrorPageHandler(*server_, headers_);
-  (void)client_;
 }
 
 HttpHandler::~HttpHandler() {}
