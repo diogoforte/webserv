@@ -2,8 +2,6 @@
 #ifndef CONFIGPARSER_H
 #define CONFIGPARSER_H
 
-#include "ServerConf.h"
-
 #include <cstdlib>
 #include <iostream>
 #include <list>
@@ -16,7 +14,7 @@ class ConfigParser
 {
 public:
 
-    static std::string getVariable(std::string const& key, std::string const& serverConfigurationString)
+    static std::string getVariable(std::string const& key, std::string const& serverConfigurationString, bool isMandatory)
     {
         std::string::size_type keyInstancePosition = serverConfigurationString.find(key);
         std::string variableString;
@@ -30,8 +28,15 @@ public:
         else
         {
             // TODO-> replace for something like a Logger::log()
-            std::cout << " [FATAL] : Could not get key -> " << key << " from configuration, aborting\n";
-            abort();
+            if (isMandatory)
+            {
+                std::cout << " [FATAL] : Could not get key -> " << key << " from configuration, aborting\n";
+                abort();
+            }
+            else
+            {
+                return "";
+            }
         }
 
         return variableString;

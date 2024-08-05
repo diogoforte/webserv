@@ -1,5 +1,4 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+/*
 
 #include <cstdlib>
 #include <fstream>
@@ -70,4 +69,4 @@ private:
   bool auto_index_;
 };
 
-#endif
+#endif*/

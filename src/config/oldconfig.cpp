@@ -1,3 +1,4 @@
+/*
 #include "config.hpp"
 #include "config.tpp"
 #include "location.hpp"
@@ -361,4 +362,4 @@ void Config::display_configs(std::vector<Server> &servers) {
       std::cout << std::endl;
     }
   }
-}
+}*/

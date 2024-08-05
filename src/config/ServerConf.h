@@ -2,20 +2,27 @@
 #ifndef SERVERCONF_H
 #define SERVERCONF_H
 
+#include "../singletons/BytesUnitMapSingleton.h"
+
 #include "ComplexField.h"
+#include "ConfigurationNode.h"
+#include "LocationConf.h"
 #include "SimpleField.h"
 
+#include <cstdlib>
 #include <stdint.h>
 #include <list>
 #include <map>
 #include <string>
 
-#include <iostream> // TODO -> remove
+#include <iostream>
 
-class ServerConf
+class ServerConf : public ConfigurationNode
 {
 public:
-    ServerConf(std::string const& src);
+    ServerConf();
+
+    virtual void init(std::string& parentContent);
 
     SimpleField listen;
     SimpleField serverName;
@@ -25,40 +32,12 @@ public:
     ComplexField<uint64_t> maxClientBodySize;
     ComplexField<bool> autoIndex;
 
-//private:
-    static std::list<std::string> toStringList(std::string indexString)
-    {
-        std::list<std::string> strings;
-        bool isLast = false;
+    std::list<LocationConf> locationsConfigsList;
 
-        do
-        {
-            std::string::size_type endPos = indexString.find(' ');
+private:
+    virtual void actuallyInit();
 
-
-            strings.push_back(indexString.substr(0, endPos));
-
-            std::cout << "Inserted " << indexString.substr(0, endPos);
-            isLast = endPos == std::string::npos;
-        }
-        while(!isLast);
-
-        return strings;
-    }
-
-    static uint64_t toInteger(std::string indexString)
-    {
-        (void)indexString;
-
-        return 1;
-    }
-
-    static bool toBoolean(std::string indexString)
-    {
-        (void)indexString;
-
-        return false;
-    }
+    void initLocations();
 };
 
 
