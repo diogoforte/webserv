@@ -1,3 +1,4 @@
+/*
 #include "config.hpp"
 #include "config.tpp"
 #include "location.hpp"
@@ -19,7 +20,10 @@ Config::Config(const Config &other) { *this = other; }
 
 void Config::set_root(const std::string &root) { root_ = root; }
 
-void Config::add_index(const std::string &index) { indexes_.push_back(index); }
+void Config::add_index(const std::string &index)
+{
+    indexes_.push_back(index);
+}
 
 void Config::add_error_page(const uint &error_code,
                             const std::string &error_page) {
@@ -68,17 +72,24 @@ void Config::host(const std::string &line, Server &server) {
   std::string host;
   size_t endPosition = line.size() - 1;
 
-  if (line.size() > 0)
-    endPosition =
-        IS_CRLF(line.at(line.size() - 1)) ? line.size() - 2 : line.size() - 1;
+  if (!line.empty())
+  {
+      endPosition = IS_CRLF(line.at(line.size() - 1)) ? line.size() - 2 : line.size() - 1;
+  }
   if (line.at(endPosition) != ';')
-    WebServer::log(WARM_CFG_SEMICOLON, warning);
+  {
+      WebServer::log(WARM_CFG_SEMICOLON, warning);
+  }
   if (line.find_first_of(':') != std::string::npos)
-    host = line.substr(line.find_first_of(' ') + 1,
-                       line.find_first_of(':') - line.find_first_of(' ') - 1);
+  {
+      host = line.substr(line.find_first_of(' ') + 1,
+                         line.find_first_of(':') - line.find_first_of(' ') - 1);
+  }
   else
-    host = line.substr(line.find_first_of(' ') + 1,
-                       line.find_first_of(';') - line.find_first_of(' ') - 1);
+  {
+      host = line.substr(line.find_first_of(' ') + 1,
+                         line.find_first_of(';') - line.find_first_of(' ') - 1);
+  }
   server.set_host(host);
 }
 
@@ -123,9 +134,10 @@ void Config::location(std::string line, Server &server, std::ifstream &file) {
   location.get_config().set_auto_index(server.get_config().get_auto_index());
   while (std::getline(file, line) && !file.eof() &&
          line.find('}') == std::string::npos) {
-    if (line.size() > 0)
-      endPosition =
-          IS_CRLF(line.at(line.size() - 1)) ? line.size() - 2 : line.size() - 1;
+    if (!line.empty())
+    {
+        endPosition = IS_CRLF(line.at(line.size() - 1)) ? line.size() - 2 : line.size() - 1;
+    }
     if (line.find("root") != std::string::npos)
       location.get_config().set_root(
           line.substr(line.find_first_of(' ') + 1,
@@ -177,7 +189,7 @@ void Config::limit_except(const std::string &line, Location &location) {
 /// @brief Check line for ending semicolon and log a warning if it's missing
 /// @param line The line from the config file
 void Config::check_semicolon(const std::string &line) {
-  if (line.size() == 0)
+  if (!line.empty())
     return;
   size_t endPosition = line.size() - 1;
 
@@ -350,4 +362,4 @@ void Config::display_configs(std::vector<Server> &servers) {
       std::cout << std::endl;
     }
   }
-}
+}*/

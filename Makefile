@@ -19,7 +19,9 @@ LOGS_PATH = logs/
 CONFIGS_PATH = configs/
 
 INC = $(addprefix -I, $(shell find . -type d))
-SRC = $(wildcard $(SRC_PATH)*.cpp $(SRC_PATH)**/*.cpp)
+SRC = $(wildcard $(SRC_PATH)*.cpp $(SRC_PATH)**/*.cpp) \
+		src/singletons/maps/BytesUnitMap.cpp
+
 OBJ = $(SRC:$(SRC_PATH)%.cpp=$(OBJ_PATH)%.o)
 
 all: $(NAME)

@@ -1,3 +1,4 @@
+/*
 #ifndef CONFIG_TPP
 #define CONFIG_TPP
 
@@ -49,4 +50,4 @@ static void multi_value(const std::string &line, T &server, const std::string &v
     }
 }
 
-#endif
+#endif*/
