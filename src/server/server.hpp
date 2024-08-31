@@ -19,6 +19,8 @@ public:
 
   ~Server();
 
+  int getID() const;
+
 #pragma endregion
 
 #pragma region Operator Overload
@@ -65,6 +67,9 @@ private:
   std::vector<Location> locations_;
   int socket_;
   std::vector<Client> connected_clients_;
+
+  static int _serverCount;
+  int _serverId;
 };
 
 #endif

@@ -4,6 +4,8 @@
 #include "error_page_handler.hpp"
 #include "http_parser.hpp"
 
+#include <vector>
+
 #define IS_VALID_BUT_NOT_SUPPORTED(method)                                     \
   (method == "PUT" || method == "PATCH" || method == "TRACE" ||                \
    method == "CONNECT" || method == "OPTIONS" || method == "HEAD")
@@ -14,11 +16,13 @@ enum redirectionType { REDIRECT_307, REDIRECT_308 };
 
 class HttpHandler {
 public:
-  HttpHandler(const string &request, Server &server, Client &client);
+  HttpHandler(const string &request, Server &server, Client &client, std::vector<Server> &servers);
 
   ~HttpHandler();
 
   string process_request();
+
+  Server* find_server(std::vector<Server>& servers, std::map<string, string> headers, Server& defaultServer);
 
 private:
   Server *server_;

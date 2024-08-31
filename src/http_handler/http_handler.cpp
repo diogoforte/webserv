@@ -5,12 +5,16 @@
 #include <iostream>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sstream>
 
 HttpHandler::HttpHandler(const string &request, Server &server,
-                         Client &client)
-    : server_(&server), client_(&client) {
+                         Client &client, std::vector<Server> &servers)
+: server_(&server)
+, client_(&client)
+{
   HttpParser parser(request);
   headers_ = parser.get_headers();
+  server_ = find_server(servers, headers_, server);
   error_page_handler_ = ErrorPageHandler(*server_, headers_);
   (void)client_;
 }
@@ -21,23 +25,71 @@ HttpHandler::~HttpHandler() {}
 
 /// @brief Process a HTTP request
 /// @return The response created by the request
-string HttpHandler::process_request() {
-  if (is_cgi_script())
-    return process_cgi();
-  if (!is_method_allowed(headers_.at("method")))
-    return error_page_handler_.get_error_page(405);
-  if (has_redirection(headers_.at("uri")))
-    return create_redirection_response();
-  if (headers_.at("method") == "GET")
-    return process_get();
-  else if (headers_.at("method") == "POST")
-    return process_post();
-  else if (headers_.at("method") == "DELETE")
-    return process_delete();
-  else if (IS_VALID_BUT_NOT_SUPPORTED(headers_.at("method")))
-    return error_page_handler_.get_error_page(501);
-  else
-    return error_page_handler_.get_error_page(400);
+string HttpHandler::process_request()
+{
+    std::cout << "\n process_request()\n";
+
+    if (is_cgi_script())
+    {
+        std::cout << "IS CGI\n";
+        return process_cgi();
+    }
+
+    if (!is_method_allowed(headers_.at("method")))
+    {
+        std::cout << "methed not allowd\n";
+        return error_page_handler_.get_error_page(405);
+    }
+
+    if (has_redirection(headers_.at("uri")))
+    {
+        std::cout << "has redirection\n";
+        return create_redirection_response();
+    }
+
+    if (headers_.at("method") == "GET")
+    {
+        std::cout << "GETGETGETGET\n";
+        return process_get();
+    }
+
+    else if (headers_.at("method") == "POST")
+        return process_post();
+
+    else if (headers_.at("method") == "DELETE")
+        return process_delete();
+
+    else if (IS_VALID_BUT_NOT_SUPPORTED(headers_.at("method")))
+        return error_page_handler_.get_error_page(501);
+
+    else
+        return error_page_handler_.get_error_page(400);
+  
+}
+
+Server* HttpHandler::find_server(std::vector<Server>& servers, std::map<string, string> headers, Server& defaultServer)
+{
+    std::cout << "\nfind_server()\n";
+
+    std::string const& host = headers["Host"];
+
+    for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+    {
+        std::stringstream ss;
+
+        ss << it->get_host() << ":" << it->get_port();
+
+        if (host == ss.str())
+        {
+            return &*it;
+        }
+        if (host == it->get_host())
+        {
+            return &*it;
+        }
+    }
+
+    return &defaultServer;
 }
 
 /// @brief Process a CGI script
@@ -100,6 +152,8 @@ string HttpHandler::process_get() {
   string file_path;
   Stat buffer;
 
+    std::cout << "\nGET\n";
+
   try {
     file_path = get_file_path(headers_.at("uri"));
     if (Utils::should_generate_autoindex(headers_.at("uri"), *server_)) {
@@ -125,15 +179,18 @@ string HttpHandler::process_get() {
 }
 
 /// @brief Process a POST request
-string HttpHandler::process_post() {
-  size_t max_size =
-      Utils::get_max_size(server_->get_config().get_max_client_body_size());
+string HttpHandler::process_post()
+{
+  size_t max_size = Utils::get_max_size(server_->get_config().get_max_client_body_size());
+
   if (headers_.at("body").size() > max_size)
+  {
     return error_page_handler_.get_error_page(413);
+  }
+
   string response = "Received" + headers_.at("body");
-  return Utils::response_builder("201", "Created", "text/plain",
-                                 response.length()) +
-         response;
+
+  return Utils::response_builder("201", "Created", "text/plain", response.length()) + response;
 }
 
 /// @brief Process a DELETE request
@@ -157,12 +214,25 @@ string HttpHandler::process_delete() {
 
 /// @brief Check if the request is a CGI script
 /// @return True if the request is a CGI script, false otherwise
-bool HttpHandler::is_cgi_script() {
-  string extension =
-      headers_.at("uri").substr(headers_.at("uri").find_last_of('.') + 1);
-  if (extension == "py" || extension == "php")
-    return true;
-  return false;
+bool HttpHandler::is_cgi_script()
+{
+    std::cout << "is_cgi_script()\n";
+
+    try 
+    {
+        string extension = headers_.at("uri").substr(headers_.at("uri").find_last_of('.') + 1);
+  
+        if (extension == "py" || extension == "php")
+            return true;
+    }
+    catch (std::exception& e)
+    {
+        (void)e;
+    }
+
+    std::cout << "is_cgi_script() end \n";
+
+    return false;
 }
 
 /// @brief Check if the request has a redirection

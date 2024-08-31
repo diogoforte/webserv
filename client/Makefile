@@ -11,7 +11,7 @@ EMOJI_TRASH = \360\237\227\221\357\270\217
 NAME = client
 
 CC = c++
-CFLAGS = -Werror -Wextra -Wall -O3 -std=c++98
+CFLAGS = -O0 -std=c++98
 
 SRC = $(wildcard $(SRC_PATH)*.cpp $(SRC_PATH)**/*.cpp)
 
