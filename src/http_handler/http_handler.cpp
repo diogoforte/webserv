@@ -74,7 +74,7 @@ Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, 
 
     for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
     {
-        std::vector<std::string> serverNames = it->get_server_name();
+        std::vector<std::string> serverNames;
         for (std::vector<std::string>::iterator sn = serverNames.begin(); sn != serverNames.end(); sn++)
         {
             std::stringstream ss;
@@ -196,46 +196,10 @@ string HttpHandler::process_get()
     }
 }
 
-/*
- *void			Response::postMethod(Request & request, RequestConfig & requestConf)
-{
-  ResponseHeader	head;
-
-  if (requestConf.getCgiPass() != "")
-  {
-    CgiHandler	cgi(request, requestConf);
-    size_t		i = 0;
-    size_t		j = _response.size() - 2;
-
-    _response = cgi.executeCgi(requestConf.getCgiPass());
-
-    while (_response.find("\r\n\r\n", i) != std::string::npos || _response.find("\r\n", i) == i)
-    {
-      std::string	str = _response.substr(i, _response.find("\r\n", i) - i);
-      if (str.find("Status: ") == 0)
-        _code = std::atoi(str.substr(8, 3).c_str());
-      else if (str.find("Content-Type: ") == 0)
-        _type = str.substr(14, str.size());
-      i += str.size() + 2;
-    }
-    while (_response.find("\r\n", j) == j)
-      j -= 2;
-
-    _response = _response.substr(i, j - i);
-  }
-  else
-  {
-    _code = 204;
-    _response = "";
-  }
-  if (_code == 500)
-    _response = this->readHtml(_errorMap[_code]);
-  _response = head.getHeader(_response.size(), _path, _code, _type, requestConf.getContentLocation(), requestConf.getLang()) + "\r\n" + _response;
-}
-*/
+// curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://rest-api.io/items
 
 /// @brief Process a POST request
-string HttpHandler::process_post()
+/*string HttpHandler::process_post()
 {
     size_t max_size = Utils::get_max_size(server_->get_config().get_max_client_body_size());
 
@@ -247,6 +211,53 @@ string HttpHandler::process_post()
     string response = "Received" + headers_.at("body");
 
     return Utils::response_builder("201", "Created", "text/plain", response.length()) + response;
+}*/
+
+string HttpHandler::process_post()
+{
+    std::ofstream file;
+    string content;
+    string file_path;
+    Stat buffer;
+
+    std::cout << "\nPOST\n";
+
+    try
+    {
+        file_path = get_file_path(headers_.at("uri"));
+
+        if (stat(file_path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
+        {
+            return error_page_handler_.get_error_page(400);
+        }
+
+        content = headers_.at("body");
+        if (content.empty())
+        {
+            return error_page_handler_.get_error_page(400);
+        }
+
+        file.open(file_path.c_str(), std::ios::out | std::ios::app);
+        if (!file.is_open())
+        {
+            return error_page_handler_.get_error_page(500);
+        }
+
+        file << content;
+        file.close();
+
+        string response = Utils::response_builder("200", "OK", "text/plain", content.length());
+        WebServer::log(string(HTTP_200) + headers_.at("uri"), info);
+        return response + "POST request processed successfully";
+
+    } catch (const std::runtime_error &e)
+    {
+        if (std::string(e.what()) == "400")
+        {
+            return error_page_handler_.get_error_page(400);
+        }
+        return error_page_handler_.get_error_page(500);
+    }
 }
 
 /// @brief Process a DELETE request
