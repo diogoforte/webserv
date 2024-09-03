@@ -74,7 +74,7 @@ Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, 
 
     for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
     {
-        std::vector<std::string> serverNames;
+        std::vector<std::string> serverNames = it->get_server_name();
         for (std::vector<std::string>::iterator sn = serverNames.begin(); sn != serverNames.end(); sn++)
         {
             std::stringstream ss;
@@ -97,7 +97,7 @@ Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, 
             }
         }
     }
-
+    
     return &defaultServer;
 }
 

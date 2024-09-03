@@ -157,8 +157,6 @@ void Config::location(std::string line, Server &server, std::ifstream &file) {
     }
   }
   server.get_locations().push_back(location);
-  int i = 0;
-  i++;
 }
 
 /// @brief Parse the limit_except block from the config file and add it to the
