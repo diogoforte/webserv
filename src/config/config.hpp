@@ -21,8 +21,6 @@ public:
   static void parse_config_file(const std::string &path,
                                 std::vector<Server> &servers);
 
-  static void display_configs(std::vector<Server> &servers);
-
   static void host(const std::string &line, Server &server);
 
   static void port(const std::string &line, Server &server);

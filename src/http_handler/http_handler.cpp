@@ -66,6 +66,7 @@ HttpHandler::HttpHandler(const string &request, Server &server,
     _contentTypeToFileExtensionMap["text/javascript"] = "js";
     _contentTypeToFileExtensionMap["text/plain"] = "txt";
     _contentTypeToFileExtensionMap["text/xml"] = "xml";
+    _contentTypeToFileExtensionMap["text/x-log"] = "log";
     // VIDEO
     _contentTypeToFileExtensionMap["video/mpeg"] = "mpeg";
     _contentTypeToFileExtensionMap["video/mp4"] = "mp4";
@@ -125,8 +126,6 @@ string HttpHandler::process_request()
 
 Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, string> headers, Server &defaultServer)
 {
-    std::cout << "\nfind_server()\n";
-
     std::string const &host = headers["Host"];
 
     for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
@@ -139,8 +138,6 @@ Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, 
             ss << *sn << ":" << it->get_port();
 
             std::string composite = ss.str();
-
-            std::cout << "\n ss.str() -> " << composite << "\n";
 
             if (host == ss.str())
             {
@@ -191,7 +188,6 @@ string HttpHandler::process_cgi()
             if (execve(Utils::path_finder(args[0]).c_str(), args, envp) == -1)
                 std::exit(EXIT_FAILURE);
         }
-        // TODO handle timeout
         close(pipefd[1]);
         char buffer[1024];
         string cgi_output;
@@ -251,29 +247,11 @@ string HttpHandler::process_get()
     }
 }
 
-// curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://rest-api.io/items
-
-/// @brief Process a POST request
-/*string HttpHandler::process_post()
-{
-    size_t max_size = Utils::get_max_size(server_->get_config().get_max_client_body_size());
-
-    if (headers_.at("body").size() > max_size)
-    {
-        return error_page_handler_.get_error_page(413);
-    }
-
-    string response = "Received" + headers_.at("body");
-
-    return Utils::response_builder("201", "Created", "text/plain", response.length()) + response;
-}*/
-
 string HttpHandler::process_post()
 {
     std::ofstream file;
     string content;
     string file_path;
-    //Stat buffer;
 
     try
     {
@@ -285,7 +263,15 @@ string HttpHandler::process_post()
 
         if (!_ongoingRequest && !headers_["Content-Type"].empty())
         {
-            std::string fileExtension = _contentTypeToFileExtensionMap.at(headers_["Content-Type"]);
+            std::string fileExtension;
+            try
+            {
+                fileExtension = _contentTypeToFileExtensionMap.at(headers_["Content-Type"]);
+            }
+            catch(const std::out_of_range& e)
+            {
+                fileExtension = "txt";
+            }
 
             if (fileExtension.empty())
             {
@@ -511,11 +497,11 @@ string HttpHandler::get_file_path(const string &uri)
 
 #pragma endregion
 
-void HttpHandler::createFile(std::string const &body, std::string const &fileExtension)
+void HttpHandler::createFile(std::string &body, std::string const &fileExtension)
 {
     std::string fileName;
 
-    static std::string const postedContentLocation = "./default_pages/posts";
+    static std::string const postedContentLocation = server_->get_config().get_root();
 
     if (_ongoingRequest)
     {
@@ -527,8 +513,31 @@ void HttpHandler::createFile(std::string const &body, std::string const &fileExt
     }
     std::ofstream outputFile(fileName.c_str());
 
+    std::string boundaryStart = body.substr(0, body.find("\r\n"));
+    std::string remaining;
+
+    if (!boundaryStart.empty())
+    {
+        remaining = body.erase(0, body.find("\r\n") + 2);
+        if (remaining.find("Content-Disposition:") != std::string::npos)
+        {
+            remaining = remaining.erase(0, remaining.find("\r\n") + 2);
+        }
+        if (remaining.find("Content-Type:") != std::string::npos)
+        {
+            remaining = remaining.erase(0, remaining.find("\r\n") + 2);
+        }
+        remaining = remaining.erase(0, remaining.find("\r\n") + 2);
+
+        remaining = remaining.substr(0, remaining.find(boundaryStart));
+
+        remaining = remaining.substr(remaining.find_first_not_of("\r\n"), remaining.find_last_not_of("\r\n") + 1);
+    }
+    else
+        remaining = body;
+
     if (outputFile.is_open()) {
-        outputFile << body;
+        outputFile << remaining;
         outputFile.close();
     } else {
         throw std::runtime_error("File could not be opened");

@@ -50,7 +50,7 @@ private:
 
   string process_cgi();
 
-  void createFile(std::string const& body, std::string const& fileExtension);
+  void createFile(std::string& body, std::string const& fileExtension);
 
   std::string getViableFileName(std::string const& dirPath, std::string const& fileExtension);
 

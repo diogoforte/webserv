@@ -24,8 +24,6 @@ static std::vector<ServerStuff> ports;
 
 int findPort(ServerStuff serverStuff)
 {
-    std::cout << "findPort()\n";
-
     for (std::vector<ServerStuff>::iterator it = ports.begin(); it != ports.end(); it++)
     {
         if (it->ip == serverStuff.ip && it->port == serverStuff.port)
@@ -111,7 +109,6 @@ void WebServer::setup_server_sockets()
 
         if (!hipoteticalReplacingSocket)
         {
-            std::cout << "\nsomething\n";
             if (bind(server_socket, reinterpret_cast<sockaddr *>(&address), sizeof(address)))
             {
                 log(ERR_BIND, warning);
@@ -332,8 +329,6 @@ void WebServer::server_routine()
                 }
                 if (events_[i].events & EPOLLOUT)
                 {
-                    if (!client_it->get_response().empty())
-                        std::cout << "Attempting to send response : " << client_it->get_response() << "\n";
                     send_response(*client_it);
                 }
                 if (events_[i].events & EPOLLERR || events_[i].events & EPOLLHUP)
