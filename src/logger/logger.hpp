@@ -47,6 +47,7 @@ enum log_level {
 // HTTP status codes
 
 #define HTTP_200 "[200] OK |   URI:"
+#define HTTP_201 "[201] Created |   URI:"
 #define HTTP_307 "[307] Temporary Redirect  |   URI:"
 #define HTTP_308 "[308] Permanent Redirect  |   URI:"
 #define HTTP_400 "[400] Bad Request  |   URI:"

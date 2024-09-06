@@ -9,5 +9,13 @@
 <body>
 	<h1>Webserver</h1>
 	<p>🟢 Test server is running</p>
+	<form action="/upload" method="post" enctype="multipart/form-data">
+		<input type="file" name="image" id="image" accept="image/*">
+		<button type="submit">Submit</button>
+	</form>
+	<form action="/upload" method="post">
+		<input type="text" name="value" id="value" accept="text">
+		<button type="submit">Submit</button>
+	</form>
 </body>
 </html>
