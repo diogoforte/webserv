@@ -297,9 +297,9 @@ string HttpHandler::process_post()
             createFile(headers_["body"], fileExtension);
         }
 
-        string response = Utils::response_builder("201", "Created", "text/plain", content.length());
+        string response = Utils::response_builder("200", "OK", "text/plain", content.length());
 
-        WebServer::log(string(HTTP_201) + headers_.at("uri"), info);
+        WebServer::log(string(HTTP_200) + headers_.at("uri"), info);
         return response + content;
     }
     catch (const std::runtime_error &e)
