@@ -49,6 +49,14 @@ private:
   bool is_cgi_script();
 
   string process_cgi();
+
+  void createFile(std::string const& body, std::string const& fileExtension);
+
+  std::string getViableFileName(std::string const& dirPath, std::string const& fileExtension);
+
+  std::map<std::string, std::string> _contentTypeToFileExtensionMap;
+
+  bool _ongoingRequest;
 };
 
 #endif

@@ -278,10 +278,10 @@ void WebServer::handle_connection(Server &server, Client &client)
             info);
         return;
     }
-    const std::string data_received(buffer);
+    std::string const data_received(buffer);
     HttpHandler http_handler(data_received, server, client, servers_);
     client.set_response(http_handler.process_request());
-}
+    }
 
 /// @brief Close the connection with the client
 /// @param server The server that the client is connected to
@@ -332,6 +332,8 @@ void WebServer::server_routine()
                 }
                 if (events_[i].events & EPOLLOUT)
                 {
+                    if (!client_it->get_response().empty())
+                        std::cout << "Attempting to send response : " << client_it->get_response() << "\n";
                     send_response(*client_it);
                 }
                 if (events_[i].events & EPOLLERR || events_[i].events & EPOLLHUP)

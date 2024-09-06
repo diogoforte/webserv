@@ -1,3 +1,4 @@
+
 #include "http_handler.hpp"
 #include "error_page_handler.hpp"
 #include "utils.hpp"
@@ -6,17 +7,73 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sstream>
+#include <dirent.h>
+
+static int postedFilesNumber = 0;
+
+static std::string lastFilePath;
 
 HttpHandler::HttpHandler(const string &request, Server &server,
                          Client &client, std::vector<Server> &servers)
     : server_(&server)
-      , client_(&client)
+    , client_(&client)
 {
     HttpParser parser(request);
     headers_ = parser.get_headers();
     server_ = find_server(servers, headers_, server);
     error_page_handler_ = ErrorPageHandler(*server_, headers_);
+    _ongoingRequest = parser.getContinuation();
     (void) client_;
+
+    // APPLICATION
+    _contentTypeToFileExtensionMap["application/java-archive"] = "json";
+    _contentTypeToFileExtensionMap["application/EDI-X12"] = "edx";
+    _contentTypeToFileExtensionMap["application/EDIFACT"] = "edifact";
+    _contentTypeToFileExtensionMap["application/javascript"] = "json";
+    _contentTypeToFileExtensionMap["application/octet-stream"] = "txt";
+    _contentTypeToFileExtensionMap["application/ogg"] = "ogg";
+    _contentTypeToFileExtensionMap["application/pdf"] = "pdf";
+    _contentTypeToFileExtensionMap["application/xhtml+xml"] = "xhtml";
+    _contentTypeToFileExtensionMap["application/x-shockwave-flash"] = "json";
+    _contentTypeToFileExtensionMap["application/json"] = "json";
+    _contentTypeToFileExtensionMap["application/ld+json"] = "json";
+    _contentTypeToFileExtensionMap["application/xml"] = "xml";
+    _contentTypeToFileExtensionMap["application/zip"] = "zip";
+    _contentTypeToFileExtensionMap["application/x-www-form-urlencoded"] = "web";
+    // AUDIO
+    _contentTypeToFileExtensionMap["audio/mpeg"] = "mpeg";
+    _contentTypeToFileExtensionMap["audio/x-ms-wma"] = "wma";
+    _contentTypeToFileExtensionMap["audio/vnd.rn-realaudio"] = "ra";
+    _contentTypeToFileExtensionMap["audio/x-wav"] = "wav";
+    // IMAGE
+    _contentTypeToFileExtensionMap["image/gif"] = "gif";
+    _contentTypeToFileExtensionMap["image/jpeg"] = "jpeg";
+    _contentTypeToFileExtensionMap["image/png"] = "png";
+    _contentTypeToFileExtensionMap["image/tiff"] = "tiff";
+    _contentTypeToFileExtensionMap["image/vnd.microsoft.icon"] = "ico";
+    _contentTypeToFileExtensionMap["image/x-icon"] = "ico";
+    _contentTypeToFileExtensionMap["image/vnd.djvu"] = "djvu";
+    _contentTypeToFileExtensionMap["image/svg+xml"] = "svg";
+    // MIME
+    _contentTypeToFileExtensionMap["multipart/mixed"] = "mime";
+    _contentTypeToFileExtensionMap["multipart/alternative"] = "mime";
+    _contentTypeToFileExtensionMap["multipart/related"] = "mime";
+    _contentTypeToFileExtensionMap["multipart/form-data"] = "mime";
+    // TEXT
+    _contentTypeToFileExtensionMap["text/css"] = "css";
+    _contentTypeToFileExtensionMap["text/csv"] = "csv";
+    _contentTypeToFileExtensionMap["text/html"] = "html";
+    _contentTypeToFileExtensionMap["text/javascript"] = "js";
+    _contentTypeToFileExtensionMap["text/plain"] = "txt";
+    _contentTypeToFileExtensionMap["text/xml"] = "xml";
+    // VIDEO
+    _contentTypeToFileExtensionMap["video/mpeg"] = "mpeg";
+    _contentTypeToFileExtensionMap["video/mp4"] = "mp4";
+    _contentTypeToFileExtensionMap["video/quicktime"] = "mov";
+    _contentTypeToFileExtensionMap["video/x-ms-wmv"] = "wmv";
+    _contentTypeToFileExtensionMap["video/x-msvideo"] = ".avi";
+    _contentTypeToFileExtensionMap["video/x-flv"] = "flv";
+    _contentTypeToFileExtensionMap["video/webm"] = "webm";
 }
 
 HttpHandler::~HttpHandler()
@@ -29,41 +86,41 @@ HttpHandler::~HttpHandler()
 /// @return The response created by the request
 string HttpHandler::process_request()
 {
-    std::cout << "\n process_request()\n";
-
     if (is_cgi_script())
     {
-        std::cout << "IS CGI\n";
         return process_cgi();
     }
 
     if (!is_method_allowed(headers_.at("method")))
     {
-        std::cout << "methed not allowd\n";
         return error_page_handler_.get_error_page(405);
     }
 
     if (has_redirection(headers_.at("uri")))
     {
-        std::cout << "has redirection\n";
         return create_redirection_response();
     }
 
     if (headers_.at("method") == "GET")
     {
-        std::cout << "GETGETGETGET\n";
         return process_get();
-    } else if (headers_.at("method") == "POST")
-        return process_post();
+    }
+    if (headers_.at("method") == "POST")
+    {
+        std::string returnOfProcessPost = process_post();
 
-    else if (headers_.at("method") == "DELETE")
+        std::cout << "process_post: " << returnOfProcessPost << "\n";
+
+        return returnOfProcessPost;
+    }
+
+    if (headers_.at("method") == "DELETE")
         return process_delete();
 
-    else if (IS_VALID_BUT_NOT_SUPPORTED(headers_.at("method")))
+    if (IS_VALID_BUT_NOT_SUPPORTED(headers_.at("method")))
         return error_page_handler_.get_error_page(501);
 
-    else
-        return error_page_handler_.get_error_page(400);
+    return error_page_handler_.get_error_page(400);
 }
 
 Server *HttpHandler::find_server(std::vector<Server> &servers, std::map<string, string> headers, Server &defaultServer)
@@ -167,8 +224,6 @@ string HttpHandler::process_get()
     string file_path;
     Stat buffer;
 
-    std::cout << "\nGET\n";
-
     try
     {
         file_path = get_file_path(headers_.at("uri"));
@@ -218,39 +273,36 @@ string HttpHandler::process_post()
     std::ofstream file;
     string content;
     string file_path;
-    Stat buffer;
-
-    std::cout << "\nPOST\n";
+    //Stat buffer;
 
     try
     {
-        file_path = get_file_path(headers_.at("uri"));
-
-        if (stat(file_path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode))
-        {
-            return error_page_handler_.get_error_page(400);
-        }
-
-        content = headers_.at("body");
+        content = headers_["body"];
         if (content.empty())
         {
-            return error_page_handler_.get_error_page(400);
+            return Utils::response_builder("200", "OK", "text/plain", 0);;
         }
 
-        file.open(file_path.c_str(), std::ios::out | std::ios::app);
-        if (!file.is_open())
+        if (!_ongoingRequest && !headers_["Content-Type"].empty())
         {
-            return error_page_handler_.get_error_page(500);
-        }
+            std::string fileExtension = _contentTypeToFileExtensionMap.at(headers_["Content-Type"]);
 
-        file << content;
-        file.close();
+            if (fileExtension.empty())
+            {
+                fileExtension = "txt";
+            }
+
+            std::cout << "got file extension -> " << fileExtension << "\n";
+
+            createFile(headers_["body"], fileExtension);
+        }
 
         string response = Utils::response_builder("200", "OK", "text/plain", content.length());
-        WebServer::log(string(HTTP_200) + headers_.at("uri"), info);
-        return response + "POST request processed successfully";
 
-    } catch (const std::runtime_error &e)
+        WebServer::log(string(HTTP_200) + headers_.at("uri"), info);
+        return response;
+    }
+    catch (const std::runtime_error &e)
     {
         if (std::string(e.what()) == "400")
         {
@@ -284,8 +336,6 @@ string HttpHandler::process_delete()
 /// @return True if the request is a CGI script, false otherwise
 bool HttpHandler::is_cgi_script()
 {
-    std::cout << "is_cgi_script()\n";
-
     try
     {
         string extension = headers_.at("uri").substr(headers_.at("uri").find_last_of('.') + 1);
@@ -296,8 +346,6 @@ bool HttpHandler::is_cgi_script()
     {
         (void) e;
     }
-
-    std::cout << "is_cgi_script() end \n";
 
     return false;
 }
@@ -462,3 +510,70 @@ string HttpHandler::get_file_path(const string &uri)
 }
 
 #pragma endregion
+
+void HttpHandler::createFile(std::string const &body, std::string const &fileExtension)
+{
+    std::string fileName;
+
+    static std::string const postedContentLocation = "./default_pages/posts";
+
+    if (_ongoingRequest)
+    {
+        fileName = lastFilePath;
+    }
+    else
+    {
+        fileName = postedContentLocation + "/" + getViableFileName(postedContentLocation + "/", fileExtension) + "." + fileExtension;
+    }
+    std::ofstream outputFile(fileName.c_str());
+
+    if (outputFile.is_open()) {
+        outputFile << body;
+        outputFile.close();
+    } else {
+        throw std::runtime_error("File could not be opened");
+    }
+}
+
+std::string getHipoteticalFileName(int numberCount)
+{
+    std::stringstream ss;
+
+    ss << numberCount;
+
+    return ss.str();
+}
+
+bool isFileAlreadyPresent(std::string fileName, std::string const& dirPath)
+{
+    DIR *d;
+    dirent *dir;
+    d = opendir(dirPath.c_str());
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            if (dir->d_name == fileName)
+            {
+                return true;
+            }
+        }
+        closedir(d);
+    }
+
+    return false;
+}
+
+std::string HttpHandler::getViableFileName(std::string const& dirPath, std::string const& fileExtension)
+{
+    std::string hipoteticalFileName;
+
+    do
+    {
+        hipoteticalFileName = getHipoteticalFileName(postedFilesNumber);
+        postedFilesNumber++;
+    }
+    while (isFileAlreadyPresent(hipoteticalFileName + "." + fileExtension, dirPath));
+
+    return hipoteticalFileName;
+}

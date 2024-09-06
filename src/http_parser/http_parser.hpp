@@ -10,12 +10,14 @@ using std::string;
 class HttpParser {
 private:
   std::map<string, string> headers_;
+  bool _continuation;
   void parse_request(const string &request);
 
 public:
   explicit HttpParser(const string &request);
   ~HttpParser();
   const std::map<string, string> &get_headers() const;
+  bool getContinuation() const;
 };
 
 #endif
